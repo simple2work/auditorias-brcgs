@@ -169,6 +169,12 @@ class Auditoria(db.Model):
 def load_user(user_id):
     return Admin.query.get(int(user_id))
 
+@app.route('/')
+def index():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    return redirect(url_for('login'))
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
