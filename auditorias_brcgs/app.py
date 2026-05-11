@@ -217,34 +217,10 @@ def nova_auditoria():
             data_plano=datetime.strptime(request.form.get('data_plano'), '%Y-%m-%d') if request.form.get('data_plano') else datetime.utcnow()
         )
         
-        # Processar Equipa Auditora com ficheiros
+        # Processar Equipa Auditora
         equipa_nome = request.form.get('equipa_nome')
-        equipa_data = {'nome': equipa_nome}
-
-        # Processar uploads de CV e certificados
-        if 'equipa_cv' in request.files and request.files['equipa_cv'].filename:
-            cv_file = request.files['equipa_cv']
-            cv_filename = f"cv_{auditoria.id}_{uuid.uuid4()}.pdf"
-            cv_path = os.path.join('uploads', cv_filename)
-            os.makedirs('uploads', exist_ok=True)
-            cv_file.save(cv_path)
-            equipa_data['cv_file'] = cv_filename
-
-        if 'equipa_cert1' in request.files and request.files['equipa_cert1'].filename:
-            cert1_file = request.files['equipa_cert1']
-            cert1_filename = f"cert1_{auditoria.id}_{uuid.uuid4()}.pdf"
-            cert1_path = os.path.join('uploads', cert1_filename)
-            cert1_file.save(cert1_path)
-            equipa_data['cert1_file'] = cert1_filename
-
-        if 'equipa_cert2' in request.files and request.files['equipa_cert2'].filename:
-            cert2_file = request.files['equipa_cert2']
-            cert2_filename = f"cert2_{auditoria.id}_{uuid.uuid4()}.pdf"
-            cert2_path = os.path.join('uploads', cert2_filename)
-            cert2_file.save(cert2_path)
-            equipa_data['cert2_file'] = cert2_filename
-
-        auditoria.equipa_auditora = equipa_data
+        if equipa_nome:
+            auditoria.equipa_auditora = {'nome': equipa_nome}
         
         # Processar Programa da Auditoria (tabela)
         programa = []
@@ -333,35 +309,8 @@ def cliente_view(link_id):
     auditoria = Auditoria.query.filter_by(link_compartilhado=link_id).first()
     if not auditoria:
         return 'Link inválido ou expirado', 404
-
+    
     return render_template('cliente_view.html', auditoria=auditoria, teal=TEAL, cinza=CINZA)
-
-@app.route('/download/<audit_id>/<file_type>')
-def download_file(audit_id, file_type):
-    auditoria = Auditoria.query.get(audit_id)
-    if not auditoria:
-        return 'Auditoria não encontrada', 404
-
-    equipa = auditoria.equipa_auditora
-    if not isinstance(equipa, dict):
-        return 'Ficheiro não encontrado', 404
-
-    filename = None
-    if file_type == 'cv' and 'cv_file' in equipa:
-        filename = equipa['cv_file']
-    elif file_type == 'cert1' and 'cert1_file' in equipa:
-        filename = equipa['cert1_file']
-    elif file_type == 'cert2' and 'cert2_file' in equipa:
-        filename = equipa['cert2_file']
-
-    if not filename:
-        return 'Ficheiro não encontrado', 404
-
-    filepath = os.path.join('uploads', filename)
-    if not os.path.exists(filepath):
-        return 'Ficheiro não encontrado no servidor', 404
-
-    return send_file(filepath, as_attachment=True, download_name=filename)
 
 @app.route('/api/auditoria/<audit_id>')
 @login_required
@@ -427,7 +376,7 @@ def gerar_pdf(audit_id, tipo):
             ['Data', auditoria.data_realizacao or auditoria.data.strftime('%d/%m/%Y')],
             ['Local', auditoria.local or ''],
             ['Duração', auditoria.duracao or ''],
-        ], colWidths=[2*cm, 10*cm])
+        ])
         data_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (0, -1), colors.HexColor(TEAL)),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -491,8 +440,8 @@ def gerar_pdf(audit_id, tipo):
                     linha.get('processo', ''),
                     linha.get('auditor', '')
                 ])
-
-            programa_table = Table(programa_data, colWidths=[2*cm, 11*cm, 3*cm])
+            
+            programa_table = Table(programa_data)
             programa_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(TEAL)),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
