@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Seleção de Âmbito - Auditorias BRCGS{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px;">
+    <h1 style="color: #333F48; margin-bottom: 0.5rem; font-weight: 300;">Seleção de Âmbito</h1>
+    <p style="color: #28939D; margin-bottom: 2rem;">Escolha quais os requisitos a auditar</p>
+    
+    <div style="background: white; border: 1px solid #F0F0F0; border-radius: 8px; padding: 2rem;">
+        <form id="ambituForm">
+            {% for num, secao in requisitos.items() %}
+            <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #F0F0F0;">
+                <h3 style="color: #28939D; margin-bottom: 1rem;">{{ secao.titulo }}</h3>
+                
+                {% for subsec_id, subsec in secao.subsecoes.items() %}
+                <div style="margin-bottom: 1.5rem; margin-left: 1rem;">
+                    <h4 style="color: #333F48; margin-bottom: 0.75rem; font-weight: 500;">{{ subsec.titulo }}</h4>
+                    
+                    {% for req in subsec.requisitos %}
+                    <div style="margin-bottom: 0.75rem;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" name="requisito" value="{{ req.id }}" style="margin-right: 0.75rem; cursor: pointer;">
+                            <span>{{ req.id }} — {{ req.desc }}</span>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem;">
+                <button type="button" class="btn btn-secondary" onclick="window.history.back()">Voltar</button>
+                <button type="submit">Continuar para Checklist</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('ambituForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const checkboxes = document.querySelectorAll('input[name="requisito"]:checked');
+    const requisitos = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (requisitos.length === 0) {
+        alert('Seleccione pelo menos um requisito');
+        return;
+    }
+    
+    try {
+        await fetch(`/auditoria/{{ auditoria.id }}/ambito`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requisitos })
+        });
+        
+        window.location.href = `/auditoria/{{ auditoria.id }}/checklist`;
+    } catch (error) {
+        alert('Erro ao guardar âmbito');
+    }
+});
+</script>
+{% endblock %}

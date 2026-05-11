@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Auditorias BRCGS{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Dashboard</h1>
+        <p style="color: #28939D; font-size: 0.95rem; margin-top: 0.5rem;">Gestão de Auditorias BRCGS</p>
+    </div>
+    <a href="{{ url_for('nova_auditoria') }}" class="btn-nova-auditoria">+ Nova Auditoria</a>
+</div>
+
+<!-- KPIs -->
+<div class="kpis-grid">
+    <div class="kpi">
+        <div class="kpi-valor">{{ auditorias|length }}</div>
+        <div class="kpi-label">Total de Auditorias</div>
+    </div>
+    <div class="kpi">
+        <div class="kpi-valor">{{ (auditorias|selectattr('checklist_data')|list|length) }}</div>
+        <div class="kpi-label">Auditorias Completas</div>
+    </div>
+    <div class="kpi">
+        <div class="kpi-valor">0</div>
+        <div class="kpi-label">NCs Pendentes</div>
+    </div>
+</div>
+
+<!-- Últimas Auditorias -->
+<h2 style="color: #333F48; margin-bottom: 1.5rem; font-weight: 300;">Auditorias Recentes</h2>
+<div class="cards-grid">
+    {% if auditorias %}
+        {% for auditoria in auditorias[:6] %}
+        <div class="card">
+            <div class="card-empresa">{{ auditoria.empresa }}</div>
+            <div class="card-data">{{ auditoria.data.strftime('%d/%m/%Y') }}</div>
+            <div class="card-info">
+                <strong>Local:</strong> {{ auditoria.local or '—' }}
+            </div>
+            <div class="card-info">
+                <strong>Tipo:</strong> {{ auditoria.tipo or '—' }}
+            </div>
+            <div class="card-info">
+                <strong>Status:</strong> 
+                {% if auditoria.checklist_data %}
+                    <span style="color: #2e7d32;">✓ Completa</span>
+                {% else %}
+                    <span style="color: #f57c00;">Em progresso</span>
+                {% endif %}
+            </div>
+            <div class="card-actions">
+                <a href="{{ url_for('checklist', audit_id=auditoria.id) }}">Editar</a>
+                <a href="{{ url_for('gerar_pdf', audit_id=auditoria.id, tipo='relatorio') }}">PDF</a>
+                <a href="{{ url_for('cliente_view', link_id=auditoria.link_compartilhado) }}" target="_blank">Partilhar</a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <p style="grid-column: 1/-1; text-align: center; padding: 2rem; color: #333F48;">
+        Nenhuma auditoria criada ainda. <a href="{{ url_for('nova_auditoria') }}" style="color: #28939D;">Criar a primeira agora</a>
+    </p>
+    {% endif %}
+</div>
+
+<!-- Gráfico comparativo (placeholder) -->
+<div style="margin-top: 3rem;">
+    <h2 style="color: #333F48; margin-bottom: 1.5rem; font-weight: 300;">Evolução das Auditorias</h2>
+    <div style="background: white; border: 1px solid #F0F0F0; border-radius: 8px; padding: 2rem; text-align: center; color: #333F48;">
+        Gráfico de evolução será exibido aqui
+    </div>
+</div>
+{% endblock %}

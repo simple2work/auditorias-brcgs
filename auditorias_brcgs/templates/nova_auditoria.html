@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Nova Auditoria - Auditorias BRCGS{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px;">
+    <h1 style="color: #333F48; margin-bottom: 0.5rem; font-weight: 300;">Nova Auditoria</h1>
+    <p style="color: #28939D; margin-bottom: 2rem;">Preencha os dados da auditoria</p>
+    
+    <div style="background: white; border: 1px solid #F0F0F0; border-radius: 8px; padding: 2rem;">
+        <form id="novaAuditoriaForm">
+            <div class="form-group">
+                <label for="empresa">Empresa *</label>
+                <input type="text" id="empresa" name="empresa" required placeholder="Nome da empresa">
+            </div>
+            
+            <div class="form-group">
+                <label for="local">Local *</label>
+                <input type="text" id="local" name="local" required placeholder="Local da auditoria">
+            </div>
+            
+            <div class="form-group">
+                <label for="objetivo">Objetivo da Auditoria *</label>
+                <textarea id="objetivo" name="objetivo" required placeholder="Descreva o objetivo" style="resize: vertical; min-height: 100px;"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="tipo">Tipo de Auditoria *</label>
+                <select id="tipo" name="tipo" required>
+                    <option value="">Seleccione...</option>
+                    <option value="1-parte">1ª Parte (Interna)</option>
+                    <option value="2-parte">2ª Parte (Fornecedor)</option>
+                    <option value="3-parte">3ª Parte (Externa)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="duracao">Duração da Auditoria *</label>
+                <input type="text" id="duracao" name="duracao" required placeholder="Ex: 2 dias, 1/2 dia">
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem;">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary" style="text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center;">Cancelar</a>
+                <button type="submit">Continuar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

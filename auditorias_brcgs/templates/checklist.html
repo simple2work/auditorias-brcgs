@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Checklist - Auditorias BRCGS{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1rem;">
+    <h1 style="color: #333F48; font-weight: 300;">{{ auditoria.empresa }}</h1>
+    <p style="color: #28939D;">Checklist de Auditoria — {{ auditoria.data.strftime('%d/%m/%Y') }}</p>
+</div>
+
+<div class="checklist-container">
+    <!-- Esquerda: Lista de Requisitos -->
+    <div class="checklist-lista" id="checklistLista">
+        <div style="padding: 1rem; text-align: center; color: #28939D;">
+            <div class="spinner"></div>
+            <p>Carregando requisitos...</p>
+        </div>
+    </div>
+    
+    <!-- Direita: Formulário -->
+    <div class="checklist-form" id="checklistForm">
+        <p style="text-align: center; color: #333F48; padding: 2rem;">
+            Seleccione um requisito na esquerda para começar
+        </p>
+    </div>
+</div>
+
+<div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary" style="text-decoration: none; padding: 0.75rem 1.5rem;">Voltar</a>
+    <button class="btn" onclick="salvarChecklist()">Guardar Checklist</button>
+    <a href="{{ url_for('gerar_pdf', audit_id=auditoria.id, tipo='relatorio') }}" class="btn" style="text-decoration: none;">Gerar PDF</a>
+</div>
+
+<script>
+let checklistData = {};
+let requisitosAtuais = [];
+
+async function carregarRequisitos() {
+    try {
+        const response = await fetch(`/api/auditoria/{{ auditoria.id }}`);
+        const data = await response.json();
+        requisitosAtuais = data.requisitos || [];
+        checklistData = data.checklist || {};
+        
+        renderizarLista();
+    } catch (error) {
+        console.error('Erro ao carregar:', error);
+    }
+}
+
+function renderizarLista() {
+    const lista = document.getElementById('checklistLista');
+    lista.innerHTML = '';
+    
+    {% for num, secao in requisitos.items() %}
+    {% for subsec_id, subsec in secao.subsecoes.items() %}
+    for (let req of {{ subsec.requisitos|tojson }}) {
+        if (requisitosAtuais.includes(req.id)) {
+            const item = document.createElement('div');
+            item.className = 'checklist-item';
+            item.id = 'req-' + req.id;
+            item.textContent = req.id + ' — ' + req.desc;
+            item.onclick = () => mostrarFormulario(req.id, req.desc);
+            lista.appendChild(item);
+        }
+    }
+    {% endfor %}
+    {% endfor %}
+}
+
+function mostrarFormulario(reqId, reqDesc) {
+    const form = document.getElementById('checklistForm');
+    const dados = checklistData[reqId] || {};
+    
+    form.innerHTML = `
+        <h3 style="color: #28939D; margin-bottom: 1rem;">${reqId}</h3>
+        <p style="color: #333F48; margin-bottom: 1.5rem;">${reqDesc}</p>
+        
+        <div class="form-section">
+            <label>Classificação *</label>
+            <select id="classificacao" style="width: 100%; padding: 0.75rem; border: 1px solid #F0F0F0; border-radius: 4px;">
+                <option value="">Seleccione...</option>
+                <option value="conforme" ${dados.classificacao === 'conforme' ? 'selected' : ''}>✓ Conforme</option>
+                <option value="nc_menor" ${dados.classificacao === 'nc_menor' ? 'selected' : ''}>NC Menor</option>
+                <option value="nc_maior" ${dados.classificacao === 'nc_maior' ? 'selected' : ''}>NC Maior</option>
+                <option value="nc_critica" ${dados.classificacao === 'nc_critica' ? 'selected' : ''}>NC Crítica</option>
+                <option value="nao_aplicavel" ${dados.classificacao === 'nao_aplicavel' ? 'selected' : ''}>Não Aplicável</option>
+            </select>
+        </div>
+        
+        <div class="form-section">
+            <label>Descrição</label>
+            <textarea id="descricao" placeholder="Descrição detalhada (auto-preenchida conforme classificação)" style="width: 100%; padding: 0.75rem; border: 1px solid #F0F0F0; border-radius: 4px; resize: vertical; min-height: 80px;">${dados.descricao || ''}</textarea>
+        </div>
+        
+        <div class="form-section">
+            <label>Evidência</label>
+            <textarea id="evidencia" placeholder="Documentação ou evidência observada" style="width: 100%; padding: 0.75rem; border: 1px solid #F0F0F0; border-radius: 4px; resize: vertical; min-height: 80px;">${dados.evidencia || ''}</textarea>
+        </div>
+        
+        <div class="form-section" id="ncDescricao" style="display: none;">
+            <label>Descrição da Não Conformidade</label>
+            <textarea id="nc_descricao" placeholder="Detalhes da não conformidade" style="width: 100%; padding: 0.75rem; border: 1px solid #F0F0F0; border-radius: 4px; resize: vertical; min-height: 80px;">${dados.nc_descricao || ''}</textarea>
+        </div>
+        
+        <button onclick="guardarRequisito('${reqId}')" style="margin-top: 1rem; background-color: #28939D; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer;">Guardar Requisito</button>
+    `;
+    
+    document.querySelectorAll('.checklist-item').forEach(i => i.classList.remove('active'));
+    document.getElementById('req-' + reqId).classList.add('active');
+    
+    document.getElementById('classificacao').addEventListener('change', (e) => {
+        const ncDiv = document.getElementById('ncDescricao');
+        if (['nc_menor', 'nc_maior', 'nc_critica'].includes(e.target.value)) {
+            ncDiv.style.display = 'block';
+        } else {
+            ncDiv.style.display = 'none';
+        }
+    });
+}
+
+function guardarRequisito(reqId) {
+    checklistData[reqId] = {
+        classificacao: document.getElementById('classificacao').value,
+        descricao: document.getElementById('descricao').value,
+        evidencia: document.getElementById('evidencia').value,
+        nc_descricao: document.getElementById('nc_descricao').value
+    };
+    
+    alert('Requisito guardado');
+}
+
+async function salvarChecklist() {
+    try {
+        await fetch(`/auditoria/{{ auditoria.id }}/checklist`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ checklist: checklistData })
+        });
+        alert('Checklist guardado com sucesso');
+    } catch (error) {
+        alert('Erro ao guardar checklist');
+    }
+}
+
+carregarRequisitos();
+</script>
+{% endblock %}

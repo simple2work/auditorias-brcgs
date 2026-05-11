@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Auditoria - {{ auditoria.empresa }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px;">
+    <div style="background: white; border-left: 4px solid #28939D; padding: 1.5rem; margin-bottom: 2rem; border-radius: 4px;">
+        <h1 style="color: #28939D; margin-bottom: 0.5rem; font-weight: 300;">{{ auditoria.empresa }}</h1>
+        <p style="color: #333F48;">Auditoria BRCGS — {{ auditoria.data.strftime('%d/%m/%Y') }}</p>
+    </div>
+    
+    <!-- Plano de Auditoria -->
+    <div style="background: white; border: 1px solid #F0F0F0; border-radius: 8px; padding: 2rem; margin-bottom: 2rem;">
+        <h2 style="color: #28939D; margin-bottom: 1rem; font-weight: 500;">Plano de Auditoria</h2>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div>
+                <p style="color: #333F48; margin-bottom: 0.25rem;"><strong>Local:</strong></p>
+                <p style="color: #333F48;">{{ auditoria.local or '—' }}</p>
+            </div>
+            <div>
+                <p style="color: #333F48; margin-bottom: 0.25rem;"><strong>Duração:</strong></p>
+                <p style="color: #333F48;">{{ auditoria.duracao or '—' }}</p>
+            </div>
+            <div style="grid-column: 1/-1;">
+                <p style="color: #333F48; margin-bottom: 0.25rem;"><strong>Objetivo:</strong></p>
+                <p style="color: #333F48;">{{ auditoria.objetivo or '—' }}</p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 1.5rem;">
+            <a href="{{ url_for('gerar_pdf', audit_id=auditoria.id, tipo='plano') }}" style="background-color: #28939D; color: white; padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none; display: inline-block;">
+                ⬇ Descarregar Plano (PDF)
+            </a>
+        </div>
+    </div>
+    
+    <!-- Checklist de Auditoria -->
+    <div style="background: white; border: 1px solid #F0F0F0; border-radius: 8px; padding: 2rem; margin-bottom: 2rem;">
+        <h2 style="color: #28939D; margin-bottom: 1rem; font-weight: 500;">Checklist de Auditoria</h2>
+        
+        {% if auditoria.checklist_data %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #28939D;">
+                        <th style="text-align: left; padding: 0.75rem; color: #28939D;">Nº</th>
+                        <th style="text-align: left; padding: 0.75rem; color: #28939D;">Requisito</th>
+                        <th style="text-align: left; padding: 0.75rem; color: #28939D;">Classificação</th>
+                        <th style="text-align: left; padding: 0.75rem; color: #28939D;">Evidência</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req_id, dados in auditoria.checklist_data.items() %}
+                    <tr style="border-bottom: 1px solid #F0F0F0;">
+                        <td style="padding: 0.75rem; color: #333F48;">{{ req_id }}</td>
+                        <td style="padding: 0.75rem; color: #333F48;">{{ dados.descricao[:50] }}...</td>
+                        <td style="padding: 0.75rem;">
+                            <span style="
+                                padding: 0.25rem 0.75rem;
+                                border-radius: 4px;
+                                font-size: 0.85rem;
+                                {% if dados.classificacao == 'conforme' %}
+                                    background-color: #E8F5E9;
+                                    color: #2E7D32;
+                                {% elif dados.classificacao == 'nc_menor' %}
+                                    background-color: #FFF3E0;
+                                    color: #E65100;
+                                {% elif dados.classificacao == 'nc_maior' %}
+                                    background-color: #FFEBEE;
+                                    color: #C62828;
+                                {% elif dados.classificacao == 'nc_critica' %}
+                                    background-color: #B71C1C;
+                                    color: white;
+                                {% else %}
+                                    background-color: #F0F0F0;
+                                    color: #333F48;
+                                {% endif %}
+                            ">
+                                {% if dados.classificacao == 'conforme' %}✓ Conforme
+                                {% elif dados.classificacao == 'nc_menor' %}NC Menor
+                                {% elif dados.classificacao == 'nc_maior' %}NC Maior
+                                {% elif dados.classificacao == 'nc_critica' %}NC Crítica
+                                {% else %}{{ dados.classificacao }}{% endif %}
+                            </span>
+                        </td>
+                        <td style="padding: 0.75rem; color: #333F48;">{{ dados.evidencia[:30] or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: #333F48; text-align: center; padding: 2rem;">Checklist em progresso...</p>
+        {% endif %}
+        
+        <div style="margin-top: 1.5rem;">
+            <a href="{{ url_for('gerar_pdf', audit_id=auditoria.id, tipo='checklist') }}" style="background-color: #28939D; color: white; padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none; display: inline-block;">
+                ⬇ Descarregar Checklist (PDF)
+            </a>
+        </div>
+    </div>
+    
+    <!-- Relatório de Auditoria -->
+    <div style="background: white; border: 1px solid #F0F0F0; border-radius: 8px; padding: 2rem;">
+        <h2 style="color: #28939D; margin-bottom: 1rem; font-weight: 500;">Relatório de Auditoria</h2>
+        
+        <p style="color: #333F48; margin-bottom: 1rem;">Relatório será gerado assim que a auditoria for concluída.</p>
+        
+        <a href="{{ url_for('gerar_pdf', audit_id=auditoria.id, tipo='relatorio') }}" style="background-color: #28939D; color: white; padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none; display: inline-block;">
+            ⬇ Descarregar Relatório (PDF)
+        </a>
+    </div>
+</div>
+{% endblock %}
