@@ -1,0 +1,376 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="nova-auditoria-container">
+    <h1 style="color: {{ teal }};">Nova Auditoria</h1>
+
+    <form method="POST" enctype="multipart/form-data" id="form-auditoria">
+        <div class="form-section">
+            <h2 style="color: {{ teal }};">Informações Gerais</h2>
+
+            <div class="form-group">
+                <label for="empresa">Empresa *</label>
+                <input type="text" id="empresa" name="empresa" required class="form-input">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="local">Local *</label>
+                    <input type="text" id="local" name="local" required class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="objetivo">Objetivo *</label>
+                    <textarea id="objetivo" name="objetivo" required class="form-input"></textarea>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="tipo">Tipo de Auditoria *</label>
+                    <select id="tipo" name="tipo" required class="form-input">
+                        <option value="">Selecione...</option>
+                        <option value="1">1ª Parte (Interna)</option>
+                        <option value="2">2ª Parte (Cliente)</option>
+                        <option value="3">3ª Parte (Certificação)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="duracao">Duração *</label>
+                    <input type="text" id="duracao" name="duracao" placeholder="Ex: 2 dias" required class="form-input">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="data_realizacao">Data de Realização</label>
+                <input type="date" id="data_realizacao" name="data_realizacao" class="form-input">
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2 style="color: {{ teal }};">Plano de Auditoria</h2>
+
+            <div class="form-group">
+                <label for="ambito">Âmbito da Auditoria</label>
+                <textarea id="ambito" name="ambito" class="form-input" rows="3" placeholder="Descreva o âmbito da auditoria..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="requisitos_nao_aplicaveis">Requisitos Não Aplicáveis</label>
+                <textarea id="requisitos_nao_aplicaveis" name="requisitos_nao_aplicaveis" class="form-input" rows="2">Os requisitos não aplicáveis são identificados no decorrer da auditoria.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="identificacao_colaboradores">Identificação dos Colaboradores</label>
+                <textarea id="identificacao_colaboradores" name="identificacao_colaboradores" class="form-input" rows="2">Esta identificação será efetuada no decurso da auditoria e de acordo com o seu programa.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="documentos_referencia">Documentos de Referência</label>
+                <textarea id="documentos_referencia" name="documentos_referencia" class="form-input" rows="2">BRC Food V9 - Documentos que suportam a realização da auditoria.</textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="idioma">Idioma da Auditoria *</label>
+                    <select id="idioma" name="idioma" required class="form-input">
+                        <option value="">Selecione...</option>
+                        <option value="Português">Português</option>
+                        <option value="Inglês">Inglês</option>
+                        <option value="Espanhol">Espanhol</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="data_plano">Data do Plano</label>
+                    <input type="date" id="data_plano" name="data_plano" class="form-input">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2 style="color: {{ teal }};">Equipa Auditora</h2>
+
+            <div class="form-group">
+                <label for="equipa_nome">Nome do Auditor Coordenador *</label>
+                <input type="text" id="equipa_nome" name="equipa_nome" required class="form-input" placeholder="Ex: Filipa Ramos">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="equipa_cv">CV do Auditor (PDF) *</label>
+                    <input type="file" id="equipa_cv" name="equipa_cv" accept=".pdf" required class="form-input">
+                    <small style="color: #999;">Máx. 5MB</small>
+                </div>
+                <div class="form-group">
+                    <label for="equipa_cert1">Certificado 1 (PDF) *</label>
+                    <input type="file" id="equipa_cert1" name="equipa_cert1" accept=".pdf" required class="form-input">
+                    <small style="color: #999;">Máx. 5MB</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="equipa_cert2">Certificado 2 (PDF)</label>
+                <input type="file" id="equipa_cert2" name="equipa_cert2" accept=".pdf" class="form-input">
+                <small style="color: #999;">Opcional - Máx. 5MB</small>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2 style="color: {{ teal }};">Programa da Auditoria</h2>
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Defina o calendário e cronograma da auditoria</p>
+
+            <div id="programa-table-wrapper" style="overflow-x: auto; margin-bottom: 15px;">
+                <table id="programa-table" class="programa-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: {{ teal }}; color: white;">
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Hora</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Processo/Assunto/Requisito</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Auditor(es)</th>
+                            <th style="padding: 10px; text-align: center; border: 1px solid #ddd; width: 50px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="programa-tbody">
+                        <!-- Linhas geradas pelo JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <button type="button" id="adicionar-linha" class="btn-adicionar" style="background-color: {{ teal }}; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 20px;">+ Adicionar Linha</button>
+        </div>
+
+        <div class="form-section">
+            <h2 style="color: {{ teal }};">Observações</h2>
+
+            <textarea id="observacoes" name="observacoes" class="form-input" rows="4">Este plano poderá ser alvo de ajustes no decurso da auditoria.
+Toda a documentação é considerada estritamente confidencial.</textarea>
+        </div>
+
+        <div class="form-section">
+            <h2 style="color: {{ teal }};">Abreviaturas</h2>
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Defina as abreviaturas utilizadas no plano (mínimo: FR e EA)</p>
+
+            <div id="abreviaturas-wrapper">
+                <!-- Linhas geradas pelo JavaScript -->
+            </div>
+
+            <button type="button" id="adicionar-abrev" class="btn-adicionar" style="background-color: {{ teal }}; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px;">+ Adicionar Abreviatura</button>
+        </div>
+
+        <div class="form-actions" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; display: flex; gap: 10px;">
+            <button type="submit" class="btn-submit" style="background-color: {{ teal }}; color: white; padding: 12px 30px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; font-weight: bold;">Criar Auditoria</button>
+            <a href="{{ url_for('dashboard') }}" class="btn-cancel" style="background-color: {{ cinza }}; color: white; padding: 12px 30px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; text-decoration: none; text-align: center;">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.nova-auditoria-container {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #FAFAFA;
+}
+
+.form-section {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    border-left: 4px solid {{ teal }};
+}
+
+.form-section h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: {{ cinza }};
+    font-size: 0.95em;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: 'Calibri Light', sans-serif;
+    font-size: 0.95em;
+    box-sizing: border-box;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: {{ teal }};
+    box-shadow: 0 0 5px rgba(40, 147, 157, 0.3);
+}
+
+.form-input textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.programa-table {
+    background-color: white;
+    border: 1px solid #ddd;
+}
+
+.programa-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.programa-table input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+.programa-table .btn-remover {
+    background-color: #e74c3c;
+    color: white;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.abreviaturas-row {
+    display: grid;
+    grid-template-columns: 150px 1fr 40px;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: flex-end;
+}
+
+.abreviaturas-row input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.abreviaturas-row .btn-remover-abrev {
+    background-color: #e74c3c;
+    color: white;
+    padding: 8px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.btn-submit {
+    transition: background-color 0.3s;
+}
+
+.btn-submit:hover {
+    background-color: #1f747d;
+}
+
+.btn-cancel {
+    transition: background-color 0.3s;
+}
+
+.btn-cancel:hover {
+    background-color: #26343f;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .abreviaturas-row {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar tabela de programa com 5 linhas
+    inicializarPrograma();
+
+    // Inicializar abreviaturas com FR e EA
+    inicializarAbreviaturas();
+
+    // Event listeners
+    document.getElementById('adicionar-linha').addEventListener('click', adicionarLinhaPrograma);
+    document.getElementById('adicionar-abrev').addEventListener('click', adicionarAbreviatura);
+    document.getElementById('data_plano').valueAsDate = new Date();
+    document.getElementById('form-auditoria').addEventListener('submit', validarFormulario);
+});
+
+function inicializarPrograma() {
+    const tbody = document.getElementById('programa-tbody');
+    for (let i = 0; i < 5; i++) {
+        adicionarLinhaPrograma(true);
+    }
+}
+
+function adicionarLinhaPrograma(init = false) {
+    const tbody = document.getElementById('programa-tbody');
+    const tr = document.createElement('tr');
+
+    tr.innerHTML = `
+        <td><input type="text" name="programa_hora[]" placeholder="HH:MM"></td>
+        <td><input type="text" name="programa_processo[]" placeholder="Ex: Recepção de MP"></td>
+        <td><input type="text" name="programa_auditor[]" placeholder="Ex: Filipa Ramos"></td>
+        <td style="text-align: center;">
+            ${!init ? '<button type="button" class="btn-remover" onclick="this.closest(\'tr\').remove();">Remover</button>' : ''}
+        </td>
+    `;
+
+    tbody.appendChild(tr);
+}
+
+function inicializarAbreviaturas() {
+    const wrapper = document.getElementById('abreviaturas-wrapper');
+
+    // Adicionar abreviaturas padrão
+    adicionarAbreviatura(true, 'FR', 'Filipa Ramos');
+    adicionarAbreviatura(true, 'EA', 'Equipa Auditora');
+}
+
+function adicionarAbreviatura(init = false, sigla = '', descricao = '') {
+    const wrapper = document.getElementById('abreviaturas-wrapper');
+    const div = document.createElement('div');
+    div.className = 'abreviaturas-row';
+
+    div.innerHTML = `
+        <input type="text" name="abrev_sigla_${wrapper.children.length + 1}" placeholder="Sigla" value="${sigla}" ${init ? '' : ''}>
+        <input type="text" name="abrev_descricao_${wrapper.children.length + 1}" placeholder="Descrição" value="${descricao}" ${init ? '' : ''}>
+        <button type="button" class="btn-remover-abrev" onclick="this.closest('.abreviaturas-row').remove();" ${init && (sigla === 'FR' || sigla === 'EA') ? 'style="visibility: hidden;"' : ''}>Remover</button>
+    `;
+
+    wrapper.appendChild(div);
+}
+
+function validarFormulario(e) {
+    // Validações adicionais podem ser adicionadas aqui
+    const empresa = document.getElementById('empresa').value.trim();
+    const local = document.getElementById('local').value.trim();
+
+    if (!empresa || !local) {
+        e.preventDefault();
+        alert('Por favor, preencha todos os campos obrigatórios.');
+        return false;
+    }
+}
+</script>
+{% endblock %}
